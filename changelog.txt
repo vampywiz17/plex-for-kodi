@@ -1,3 +1,20 @@
+[- 0.1.7 -]
+
+Add Italian translations (thanks to iz8mbw)
+
+[- 0.1.6 -]
+
+Fix issues when selecting subtitles for users of certain languages (Issue #188)
+
+[- 0.1.5 -]
+
+Allow direct playback of episodes and movies using the play button on hub screen (thanks to pannal)
+In progress watched items had the 'Mark unwatched' option instead of 'Mark watched'
+Fix an issue causing the home window to start slightly scrolled down if it was closed scolled down
+Fix an issue causing an error when sort was sort was "BY UNWATCHED" and the filtering "UNWATCHED" (Issue #187)
+Fix issue with letter shortcuts sometimes being shown/not shown incorrectly
+Fix a bug causing crash and reboot on startup on Raspberry Pi (LibreElec specific?) - Reverts "Fix autostart to work with profiles"
+
 [- 0.1.4 -]
 
 Kodi v18: Fix skin compatability issues
@@ -11,6 +28,16 @@ Improve centering over label backgrounds on pre-play screens
 Fix some spots where tokens could still be logged
 Play correct track when playing a multi-disc album (Issue #148)
 Improve headers for better identification in 'Now Playing' and future server profile
+Updated German language strings (thanks to coffinbearer)
+Fix French translations file (thanks to coffinbearer)
+Fix some Hungarian translations (thanks to vampywiz17)
+Add Russian translations (thanks to shady2k)
+Fix autostart to work with profiles (thanks to pannal)
+Fix focus loss on home screen due to error (Issue #169)
+Fix "No Servers Found" when preferred server is unavailable (Issue #159)
+Fix system keyboard not working for search (Kodi 17+)(Issue #165)
+Fix issue causing hubs to scroll up when settings were opened
+Fix failure to sign in when signed off externally (Issue #110 & #117)
 
 [- 0.1.3 -]
 
@@ -27,7 +54,7 @@ Remove PlexPass disclaimer from add-on info
 [- 0.1.0 -]
 
 Improved hub vertical scrolling animation
-Fix (#87): Switching between managed users causes Kodi to crashing
+Fix (#87): Switching between managed users causes Kodi to crash
 Fix (#119): Occasional crashes when exiting the add-on
 Remove PlexPass requirement
 
@@ -40,7 +67,7 @@ Add ability to view episodes/albums in library view
 Add German translation (thanks to coffinbearer)
 Add Czech translation (thanks to Pavuucek)
 Add Hungarian translation (thanks to vampywiz17)
-Add Frensh translation (thanks to raffoul/rlimbach)
+Add French translation (thanks to raffoul/rlimbach)
 Fix issue #64 (multi part movies won't playback)
 Improve timeline reporting
 Friendly name now includes hostname to differentiate Kodi devices

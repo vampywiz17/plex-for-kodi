@@ -139,20 +139,39 @@ class ServerListItem(kodigui.ManagedListItem):
         self.dataSource.on('started:reachability', self.onUpdate)
         return self
 
+    def safeSetProperty(self, key, value):
+        # For if we catch the item in the middle of being removed
+        try:
+            self.setProperty(key, value)
+            return True
+        except AttributeError:
+            pass
+
+        return False
+
+    def safeSetLabel(self, value):
+        try:
+            self.setLabel(value)
+            return True
+        except AttributeError:
+            pass
+
+        return False
+
     def onUpdate(self, **kwargs):
         if not self.listItem:  # ex. can happen on Kodi shutdown
             return
 
         if not self.dataSource.isSupported or not self.dataSource.isReachable():
             if self.dataSource.pendingReachabilityRequests > 0:
-                self.setProperty('status', 'refreshing.gif')
+                self.safeSetProperty('status', 'refreshing.gif')
             else:
-                self.setProperty('status', 'unreachable.png')
+                self.safeSetProperty('status', 'unreachable.png')
         else:
-            self.setProperty('status', self.dataSource.isSecure and 'secure.png' or '')
+            self.safeSetProperty('status', self.dataSource.isSecure and 'secure.png' or '')
 
-        self.setProperty('current', plexapp.SERVERMANAGER.selectedServer == self.dataSource and '1' or '')
-        self.setLabel(self.dataSource.name)
+        self.safeSetProperty('current', plexapp.SERVERMANAGER.selectedServer == self.dataSource and '1' or '')
+        self.safeSetLabel(self.dataSource.name)
 
     def onDestroy(self):
         self.dataSource.off('completed:reachability', self.onUpdate)
@@ -284,6 +303,8 @@ class HomeWindow(kodigui.BaseWindow, util.CronReceiver):
         self.updateHubs = {}
         windowutils.HOME = self
 
+        util.setGlobalBoolProperty('off.sections', '')
+
     def onFirstInit(self):
         self.sectionList = kodigui.ManagedControlList(self, self.SECTION_LIST_ID, 7)
         self.serverList = kodigui.ManagedControlList(self, self.SERVER_LIST_ID, 10)
@@ -401,8 +422,12 @@ class HomeWindow(kodigui.BaseWindow, util.CronReceiver):
                     self.setFocusId(self.SERVER_BUTTON_ID)
             elif controlID == self.PLAYER_STATUS_BUTTON_ID and action == xbmcgui.ACTION_MOVE_RIGHT:
                 self.setFocusId(self.SERVER_BUTTON_ID)
-            elif 399 < controlID < 500 and action.getId() in MOVE_SET:
-                self.checkHubItem(controlID)
+            elif 399 < controlID < 500:
+                if action.getId() in MOVE_SET:
+                    self.checkHubItem(controlID)
+                elif action.getId() == xbmcgui.ACTION_PLAYER_PLAY:
+                    self.hubItemClicked(controlID, auto_play=True)
+                    return
 
             if action in(xbmcgui.ACTION_NAV_BACK, xbmcgui.ACTION_CONTEXT_MENU):
                 if not xbmc.getCondVisibility('ControlGroup({0}).HasFocus(0)'.format(self.OPTIONS_GROUP_ID)) and self.getProperty('off.sections'):
@@ -455,9 +480,9 @@ class HomeWindow(kodigui.BaseWindow, util.CronReceiver):
             self.checkSectionItem()
 
         if xbmc.getCondVisibility('ControlGroup(50).HasFocus(0) + ControlGroup(100).HasFocus(0)'):
-            self.setProperty('off.sections', '')
-        elif xbmc.getCondVisibility('ControlGroup(50).HasFocus(0) + !ControlGroup(100).HasFocus(0)'):
-            self.setProperty('off.sections', '1')
+            util.setGlobalBoolProperty('off.sections', '')
+        elif controlID != 250 and xbmc.getCondVisibility('ControlGroup(50).HasFocus(0) + !ControlGroup(100).HasFocus(0)'):
+            util.setGlobalBoolProperty('off.sections', '1')
 
     def confirmExit(self):
         button = optionsdialog.show(
@@ -498,7 +523,7 @@ class HomeWindow(kodigui.BaseWindow, util.CronReceiver):
         self.showHubs(HomeSection)
         return True
 
-    def hubItemClicked(self, hubControlID):
+    def hubItemClicked(self, hubControlID, auto_play=False):
         control = self.hubControls[hubControlID - 400]
         mli = control.getSelectedItem()
         if not mli:
@@ -507,7 +532,7 @@ class HomeWindow(kodigui.BaseWindow, util.CronReceiver):
         if mli.dataSource is None:
             return
 
-        command = opener.open(mli.dataSource)
+        command = opener.open(mli.dataSource, auto_play=auto_play)
 
         self.updateListItem(mli)
 
@@ -516,7 +541,7 @@ class HomeWindow(kodigui.BaseWindow, util.CronReceiver):
 
         if not control.size():
             idx = self.hubFocusIndexes[hubControlID - 400]
-            while idx > -1:
+            while idx > 0:
                 idx -= 1
                 controlID = 400 + self.hubFocusIndexes.index(idx)
                 control = self.hubControls[self.hubFocusIndexes.index(idx)]
